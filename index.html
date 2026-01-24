@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dan The Man – Web Demo</title>
-  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Dan The Man – Web</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,23 +11,23 @@
 <div id="menu">
   <h1>DAN THE MAN!</h1>
 
-  <button id="playBtn">PLAY!</button>
-  <div class="submenu" id="playMenu">
-    <button data-mode="story">STORY MODE!</button>
-    <button data-mode="any">ANY MODE!</button>
-  </div>
+  <button onclick="startGame('story')">PLAY!</button>
+  <button onclick="startGame('create')">CUSTOM BUILDING LEVEL!</button>
 
-  <button id="customBtn">CUSTOM BUILDING LEVEL!</button>
-  <div class="submenu" id="customMenu">
-    <button data-mode="create">CREATE LEVEL!</button>
-    <button data-mode="customPlay">PLAY LEVEL!</button>
-  </div>
+  <label class="upload">
+    UPLOAD MIDI!
+    <input type="file" accept=".mid,.midi">
+  </label>
 </div>
 
 <canvas id="game"></canvas>
 
-<div id="hint">
-  ← → Move &nbsp; | &nbsp; Z = Punch &nbsp; | &nbsp; X = Jump
+<!-- MOBILE CONTROLS -->
+<div id="mobile">
+  <button id="left">◀</button>
+  <button id="right">▶</button>
+  <button id="punch">Z</button>
+  <button id="jump">X</button>
 </div>
 
 <script src="main.js"></script>
