@@ -45,9 +45,6 @@ index.html
 style.css
 main.js
 
-yaml
-Sao chép mã
-
 ---
 
 ## 🎵 Audio & Fonts
