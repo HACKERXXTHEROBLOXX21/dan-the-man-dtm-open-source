@@ -1,30 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Dan The Man (Open Source)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<meta charset="UTF-8" />
+<title>Dan The Man – Web Demo</title>
 
-<canvas id="game"></canvas>
+<link rel="stylesheet" href="style.css">
 
-<!-- MOBILE CONTROLS -->
-<div id="controls">
-  <button id="left">◀</button>
-  <button id="right">▶</button>
-  <button id="punch">Z</button>
-  <button id="jump">X</button>
-</div>
-
-<!-- MIDI PLAYER -->
-<div id="midi">
-  <input type="file" id="midiUpload" accept=".mid,.midi">
-  <input type="file" id="sfUpload" accept=".sf2">
-</div>
-
+<!-- MIDI + SoundFont libs -->
 <script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/dist/soundfont-player.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/midi-player-js@2.0.5/dist/MidiPlayer.min.js"></script>
+</head>
+
+<body>
+  <!-- AUDIO UI -->
+  <div id="audio-ui">
+    <input type="file" id="midiInput" accept=".mid">
+    <input type="file" id="sf2Input" accept=".sf2">
+    <button id="playMidi">▶ PLAY MIDI</button>
+  </div>
+
+  <!-- GAME -->
+  <canvas id="game"></canvas>
+
+  <!-- MOBILE CONTROLS -->
+  <div id="controls">
+    <button id="left">◀</button>
+    <button id="right">▶</button>
+    <button id="punch">Z</button>
+    <button id="jump">X</button>
+  </div>
+
 <script src="main.js"></script>
 </body>
 </html>
