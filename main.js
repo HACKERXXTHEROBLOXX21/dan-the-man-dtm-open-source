@@ -1,95 +1,99 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Base resolution (Dan The Man style)
 const BASE_W = 640;
 const BASE_H = 360;
 
-function resize() {
-  canvas.width = BASE_W;
-  canvas.height = BASE_H;
-}
-resize();
+canvas.width = BASE_W;
+canvas.height = BASE_H;
 
-// ================= GAME STATE =================
-let gameState = "menu";
+// ================= STATES =================
+let state = "menu";
+let cameraX = 0;
 
-// ================= MENU =================
-const menu = document.getElementById("menu");
-const playMenu = document.getElementById("playMenu");
-const customMenu = document.getElementById("customMenu");
-
-document.getElementById("playBtn").onclick = () => {
-  playMenu.style.display = playMenu.style.display === "flex" ? "none" : "flex";
-};
-
-document.getElementById("customBtn").onclick = () => {
-  customMenu.style.display = customMenu.style.display === "flex" ? "none" : "flex";
-};
-
-document.querySelectorAll("[data-mode]").forEach(btn => {
-  btn.onclick = () => {
-    gameState = btn.dataset.mode;
-    menu.style.display = "none";
-  };
+// ================= FULLSCREEN =================
+window.addEventListener("keydown", e => {
+  if (e.key.toLowerCase() === "f") {
+    if (!document.fullscreenElement) {
+      document.body.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
 });
 
 // ================= INPUT =================
 const keys = {};
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+addEventListener("keydown", e => keys[e.key] = true);
+addEventListener("keyup", e => keys[e.key] = false);
 
-// ================= LOAD SPRITES =================
-const load = src => {
-  const i = new Image();
-  i.src = src;
-  return i;
-};
+// MOBILE
+["left","right","jump","punch"].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener("touchstart", () => keys[id] = true);
+  el.addEventListener("touchend", () => keys[id] = false);
+});
 
-const dan = {
+// ================= SPRITES =================
+const load = s => { const i=new Image(); i.src=s; return i; };
+
+const danSprites = {
   idle: load("assets/sprites/dan_idle.png"),
   walk: load("assets/sprites/dan_walk.png"),
   punch: load("assets/sprites/dan_punch.png"),
   jump: load("assets/sprites/dan_jump.png")
 };
 
-const enemySprites = {
-  run: load("assets/sprites/baton_guard_enemy_run.png"),
-  dead: load("assets/sprites/baton_guard_enemy_died.png")
+// ================= PLAYER =================
+const player = {
+  x: 100,
+  y: 260,
+  vx: 0,
+  vy: 0,
+  grounded: true,
+  sprite: danSprites.idle
 };
 
-// ================= PLAYER =================
-const player = { x: 100, y: 260, vx: 0, vy: 0, grounded: true, sprite: dan.idle };
-const enemy = { x: 450, y: 260, alive: true };
+// ================= LEVEL =================
+const tileSize = 32;
+const level = []; // blocks placed in editor
+
+// ================= START =================
+function startGame(mode) {
+  state = mode;
+  document.getElementById("menu").style.display = "none";
+}
 
 // ================= UPDATE =================
 function update() {
   player.vx = 0;
 
-  if (keys["ArrowLeft"]) {
+  const left = keys["ArrowLeft"] || keys.left;
+  const right = keys["ArrowRight"] || keys.right;
+
+  if (left) {
     player.vx = -2;
-    player.sprite = dan.walk;
-  } else if (keys["ArrowRight"]) {
+    player.sprite = danSprites.walk;
+  } else if (right) {
     player.vx = 2;
-    player.sprite = dan.walk;
+    player.sprite = danSprites.walk;
   } else {
-    player.sprite = dan.idle;
+    player.sprite = danSprites.idle;
   }
 
-  if (keys["x"] && player.grounded) {
+  if ((keys["x"] || keys.jump) && player.grounded) {
     player.vy = -6;
     player.grounded = false;
-    player.sprite = dan.jump;
+    player.sprite = danSprites.jump;
   }
 
-  if (keys["z"]) {
-    player.sprite = dan.punch;
-    if (Math.abs(player.x - enemy.x) < 40) enemy.alive = false;
+  if (keys["z"] || keys.punch) {
+    player.sprite = danSprites.punch;
   }
 
   player.x += player.vx;
   player.y += player.vy;
-  player.vy += 0.35;
+  player.vy += 0.3;
 
   if (player.y >= 260) {
     player.y = 260;
@@ -97,25 +101,47 @@ function update() {
     player.grounded = true;
   }
 
-  if (enemy.alive) enemy.x -= 0.4;
+  cameraX = player.x - BASE_W / 2;
 }
+
+// ================= LEVEL EDITOR =================
+canvas.addEventListener("click", e => {
+  if (state !== "create") return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left) / tileSize) * tileSize + cameraX;
+  const y = Math.floor((e.clientY - rect.top) / tileSize) * tileSize;
+
+  level.push({ x, y });
+});
 
 // ================= DRAW =================
 function draw() {
   ctx.clearRect(0, 0, BASE_W, BASE_H);
 
+  ctx.save();
+  ctx.translate(-cameraX, 0);
+
+  // blocks
+  ctx.fillStyle = "#444";
+  level.forEach(b => ctx.fillRect(b.x, b.y, tileSize, tileSize));
+
   ctx.drawImage(player.sprite, player.x, player.y, 48, 48);
 
-  if (enemy.alive) {
-    ctx.drawImage(enemySprites.run, enemy.x, enemy.y, 48, 48);
-  } else {
-    ctx.drawImage(enemySprites.dead, enemy.x, enemy.y, 48, 48);
+  ctx.restore();
+
+  // grid (editor)
+  if (state === "create") {
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    for (let x=0;x<BASE_W;x+=tileSize)
+      for (let y=0;y<BASE_H;y+=tileSize)
+        ctx.strokeRect(x,y,tileSize,tileSize);
   }
 }
 
 // ================= LOOP =================
 function loop() {
-  if (gameState !== "menu") {
+  if (state !== "menu") {
     update();
     draw();
   }
