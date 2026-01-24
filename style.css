@@ -3,6 +3,10 @@
   src: url("assets/fonts/prstartk.ttf") format("truetype");
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   background: #000;
@@ -15,6 +19,7 @@ canvas {
   background: #111;
 }
 
+/* MENU */
 #menu {
   position: absolute;
   inset: 0;
@@ -27,6 +32,7 @@ canvas {
 h1 {
   color: white;
   margin-bottom: 28px;
+  font-size: 28px;
 }
 
 .menu-btn {
@@ -38,6 +44,7 @@ h1 {
   border: 3px solid white;
   font-family: "prstartk";
   font-size: 14px;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
@@ -48,8 +55,10 @@ h1 {
 
 .sub-btn {
   font-size: 12px;
+  background: #1a1a1a;
 }
 
 .hidden {
   display: none;
 }
+
