@@ -1,140 +1,134 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// ======================
-// LOAD IMAGES
-// ======================
-function loadImage(src) {
+// ================== GAME STATE ==================
+let gameState = "menu";
+
+// ================== MENU ==================
+const menu = document.getElementById("menu");
+const playMenu = document.getElementById("playMenu");
+const customMenu = document.getElementById("customMenu");
+
+document.getElementById("playBtn").onclick = () => {
+  playMenu.style.display = playMenu.style.display === "flex" ? "none" : "flex";
+};
+
+document.getElementById("customBtn").onclick = () => {
+  customMenu.style.display =
+    customMenu.style.display === "flex" ? "none" : "flex";
+};
+
+document.querySelectorAll("[data-mode]").forEach(btn => {
+  btn.onclick = () => {
+    gameState = btn.dataset.mode;
+    menu.style.display = "none";
+  };
+});
+
+// ================== INPUT ==================
+const keys = {};
+window.addEventListener("keydown", e => (keys[e.key] = true));
+window.addEventListener("keyup", e => (keys[e.key] = false));
+
+// ================== SPRITES ==================
+function loadSprite(src) {
   const img = new Image();
   img.src = src;
   return img;
 }
 
-// Dan sprites
-const dan = {
-  x: 80,
+const danSprites = {
+  idle: loadSprite("assets/sprites/dan_idle.png"),
+  walk: loadSprite("assets/sprites/dan_walk.png"),
+  punch: loadSprite("assets/sprites/dan_punch.png"),
+  jump: loadSprite("assets/sprites/dan_jump.png"),
+};
+
+const enemySprites = {
+  idle: loadSprite("assets/sprites/baton_guard_enemy_idle.png"),
+  run: loadSprite("assets/sprites/baton_guard_enemy_run.png"),
+  dead: loadSprite("assets/sprites/baton_guard_enemy_died.png"),
+};
+
+// ================== PLAYER ==================
+const player = {
+  x: 100,
   y: 260,
-  w: 32,
-  h: 32,
   vx: 0,
-  onGround: true,
-  state: "idle",
-  sprites: {
-    idle: loadImage("assets/sprites/dan_idle.png"),
-    walk: loadImage("assets/sprites/dan_walk.png"),
-    punch: loadImage("assets/sprites/dan_punch.png"),
-    jump: loadImage("assets/sprites/dan_jump.png"),
-  },
+  vy: 0,
+  grounded: true,
+  sprite: danSprites.idle,
 };
 
-// Enemy
 const enemy = {
-  x: 480,
+  x: 450,
   y: 260,
-  w: 32,
-  h: 32,
   alive: true,
-  state: "idle",
-  sprites: {
-    idle: loadImage("assets/sprites/baton_guard_enemy_idle.png"),
-    run: loadImage("assets/sprites/baton_guard_enemy_run.png"),
-    died: loadImage("assets/sprites/baton_guard_enemy_died.png"),
-  },
+  sprite: enemySprites.run,
 };
 
-// ======================
-// INPUT
-// ======================
-const keys = {};
-
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
-
-// ======================
-// MIDI MUSIC (SNES GM)
-// ======================
-MIDI.loadPlugin({
-  soundfontUrl: "assets/audio/",
-  instrument: "acoustic_grand_piano",
-  onsuccess: () => {
-    MIDI.setVolume(0, 80);
-    MIDI.programChange(0, 0);
-    // Simple looped melody
-    let t = 0;
-    setInterval(() => {
-      MIDI.noteOn(0, 60, 80, t);
-      MIDI.noteOff(0, 60, t + 0.3);
-      t += 0.4;
-    }, 400);
-  }
-});
-
-// ======================
-// GAME LOOP
-// ======================
+// ================== UPDATE ==================
 function update() {
-  // Movement
-  dan.vx = 0;
-  dan.state = "idle";
+  // PLAYER MOVE
+  player.vx = 0;
 
-  if (keys["ArrowRight"]) {
-    dan.vx = 2;
-    dan.state = "walk";
-  }
   if (keys["ArrowLeft"]) {
-    dan.vx = -2;
-    dan.state = "walk";
+    player.vx = -2;
+    player.sprite = danSprites.walk;
+  } else if (keys["ArrowRight"]) {
+    player.vx = 2;
+    player.sprite = danSprites.walk;
+  } else {
+    player.sprite = danSprites.idle;
   }
 
-  if (keys["x"] && dan.onGround) {
-    dan.onGround = false;
-    dan.state = "jump";
+  if (keys["x"] && player.grounded) {
+    player.vy = -6;
+    player.grounded = false;
+    player.sprite = danSprites.jump;
   }
 
   if (keys["z"]) {
-    dan.state = "punch";
-    if (enemy.alive && Math.abs(dan.x - enemy.x) < 40) {
+    player.sprite = danSprites.punch;
+    if (Math.abs(player.x - enemy.x) < 40) {
       enemy.alive = false;
-      enemy.state = "died";
     }
   }
 
-  dan.x += dan.vx;
+  // PHYSICS
+  player.x += player.vx;
+  player.y += player.vy;
+  player.vy += 0.3;
 
-  // Gravity
-  if (!dan.onGround) {
-    dan.y -= 4;
-    if (dan.y <= 220) dan.onGround = true;
-  } else {
-    dan.y = 260;
+  if (player.y >= 260) {
+    player.y = 260;
+    player.vy = 0;
+    player.grounded = true;
   }
 
-  // Enemy AI
+  // ENEMY
   if (enemy.alive) {
-    enemy.state = "run";
-    enemy.x -= 0.6;
+    enemy.sprite = enemySprites.run;
+    enemy.x -= 0.5;
+  } else {
+    enemy.sprite = enemySprites.dead;
   }
 }
 
+// ================== DRAW ==================
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Ground
-  ctx.fillStyle = "#3c8c3c";
-  ctx.fillRect(0, 300, canvas.width, 60);
-
-  // Enemy
-  const eSprite = enemy.sprites[enemy.state];
-  ctx.drawImage(eSprite, enemy.x, enemy.y, enemy.w, enemy.h);
-
-  // Dan
-  const dSprite = dan.sprites[dan.state];
-  ctx.drawImage(dSprite, dan.x, dan.y, dan.w, dan.h);
+  ctx.drawImage(player.sprite, player.x, player.y, 48, 48);
+  ctx.drawImage(enemy.sprite, enemy.x, enemy.y, 48, 48);
 }
 
+// ================== LOOP ==================
 function loop() {
-  update();
-  draw();
+  if (gameState !== "menu") {
+    update();
+    draw();
+  }
   requestAnimationFrame(loop);
 }
 
