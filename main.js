@@ -1,96 +1,135 @@
-// ================== CANVAS ==================
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-ctx.imageSmoothingEnabled = false;
 
-// ================== SPRITES ==================
-const sprites = {
-  idle:  { img: new Image(), frames: 4 },
-  walk:  { img: new Image(), frames: 6 },
-  punch: { img: new Image(), frames: 3 },
-  jump:  { img: new Image(), frames: 1 }
+// ======================
+// LOAD IMAGES
+// ======================
+function loadImage(src) {
+  const img = new Image();
+  img.src = src;
+  return img;
+}
+
+// Dan sprites
+const dan = {
+  x: 80,
+  y: 260,
+  w: 32,
+  h: 32,
+  vx: 0,
+  onGround: true,
+  state: "idle",
+  sprites: {
+    idle: loadImage("assets/sprites/dan_idle.png"),
+    walk: loadImage("assets/sprites/dan_walk.png"),
+    punch: loadImage("assets/sprites/dan_punch.png"),
+    jump: loadImage("assets/sprites/dan_jump.png"),
+  },
 };
 
-sprites.idle.img.src  = "assets/sprites/dan_idle.png";
-sprites.walk.img.src  = "assets/sprites/dan_walk.png";
-sprites.punch.img.src = "assets/sprites/dan_punch.png";
-sprites.jump.img.src  = "assets/sprites/dan_jump.png";
+// Enemy
+const enemy = {
+  x: 480,
+  y: 260,
+  w: 32,
+  h: 32,
+  alive: true,
+  state: "idle",
+  sprites: {
+    idle: loadImage("assets/sprites/baton_guard_enemy_idle.png"),
+    run: loadImage("assets/sprites/baton_guard_enemy_run.png"),
+    died: loadImage("assets/sprites/baton_guard_enemy_died.png"),
+  },
+};
 
-const FRAME_W = 32;
-const FRAME_H = 32;
-
-// ================== PLAYER ==================
-let x = 140, y = 120;
-let vx = 0, vy = 0;
-const speed = 1.5;
-const gravity = 0.35;
-const jumpPower = -6;
-const groundY = 120;
-
-let onGround = true;
-let state = "idle";
-let frame = 0;
-let frameTimer = 0;
-
-// ================== INPUT ==================
+// ======================
+// INPUT
+// ======================
 const keys = {};
+
 window.addEventListener("keydown", e => keys[e.key] = true);
 window.addEventListener("keyup", e => keys[e.key] = false);
 
-// ================== GAME LOOP ==================
+// ======================
+// MIDI MUSIC (SNES GM)
+// ======================
+MIDI.loadPlugin({
+  soundfontUrl: "assets/audio/",
+  instrument: "acoustic_grand_piano",
+  onsuccess: () => {
+    MIDI.setVolume(0, 80);
+    MIDI.programChange(0, 0);
+    // Simple looped melody
+    let t = 0;
+    setInterval(() => {
+      MIDI.noteOn(0, 60, 80, t);
+      MIDI.noteOff(0, 60, t + 0.3);
+      t += 0.4;
+    }, 400);
+  }
+});
+
+// ======================
+// GAME LOOP
+// ======================
 function update() {
-  vx = 0;
+  // Movement
+  dan.vx = 0;
+  dan.state = "idle";
 
-  if ((keys["ArrowUp"] || keys[" "]) && onGround) {
-    vy = jumpPower;
-    onGround = false;
+  if (keys["ArrowRight"]) {
+    dan.vx = 2;
+    dan.state = "walk";
+  }
+  if (keys["ArrowLeft"]) {
+    dan.vx = -2;
+    dan.state = "walk";
   }
 
-  if (keys["z"] || keys["Z"]) {
-    if (state !== "punch") {
-      state = "punch";
-      frame = 0;
+  if (keys["x"] && dan.onGround) {
+    dan.onGround = false;
+    dan.state = "jump";
+  }
+
+  if (keys["z"]) {
+    dan.state = "punch";
+    if (enemy.alive && Math.abs(dan.x - enemy.x) < 40) {
+      enemy.alive = false;
+      enemy.state = "died";
     }
   }
-  else if (!onGround) state = "jump";
-  else if (keys["ArrowLeft"] || keys["ArrowRight"]) {
-    state = "walk";
-    if (keys["ArrowLeft"]) vx = -speed;
-    if (keys["ArrowRight"]) vx = speed;
-  }
-  else state = "idle";
 
-  x += vx;
-  vy += gravity;
-  y += vy;
+  dan.x += dan.vx;
 
-  if (y >= groundY) {
-    y = groundY;
-    vy = 0;
-    onGround = true;
+  // Gravity
+  if (!dan.onGround) {
+    dan.y -= 4;
+    if (dan.y <= 220) dan.onGround = true;
+  } else {
+    dan.y = 260;
   }
 
-  frameTimer++;
-  if (frameTimer > 8) {
-    frame++;
-    frameTimer = 0;
-    if (frame >= sprites[state].frames) {
-      frame = 0;
-      if (state === "punch") state = "idle";
-    }
+  // Enemy AI
+  if (enemy.alive) {
+    enemy.state = "run";
+    enemy.x -= 0.6;
   }
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const s = sprites[state];
-  ctx.drawImage(
-    s.img,
-    frame * FRAME_W, 0,
-    FRAME_W, FRAME_H,
-    Math.floor(x), Math.floor(y),
-    FRAME_W, FRAME_H
-  );
+
+  // Ground
+  ctx.fillStyle = "#3c8c3c";
+  ctx.fillRect(0, 300, canvas.width, 60);
+
+  // Enemy
+  const eSprite = enemy.sprites[enemy.state];
+  ctx.drawImage(eSprite, enemy.x, enemy.y, enemy.w, enemy.h);
+
+  // Dan
+  const dSprite = dan.sprites[dan.state];
+  ctx.drawImage(dSprite, dan.x, dan.y, dan.w, dan.h);
 }
 
 function loop() {
@@ -99,41 +138,4 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-// ================== MIDI + SF2 ==================
-let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let player = null;
-let midiFile = null;
-
-const midiInput = document.getElementById("midiUpload");
-const playBtn = document.getElementById("playMidi");
-
-midiInput.addEventListener("change", e => {
-  midiFile = e.target.files[0];
-});
-
-playBtn.addEventListener("click", async () => {
-  if (!midiFile) return alert("Upload a MIDI first!");
-
-  if (!player) {
-    player = await Soundfont.instrument(
-      audioCtx,
-      "acoustic_grand_piano",
-      {
-        soundfont: "FluidR3_GM",
-        nameToUrl: () =>
-          "assets/audio/Super_Nintendo_Unofficial_update.sf2"
-      }
-    );
-  }
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    Soundfont.player(player, reader.result);
-  };
-  reader.readAsArrayBuffer(midiFile);
-});
-
-// ================== START ==================
-Promise.all(
-  Object.values(sprites).map(s => new Promise(r => s.img.onload = r))
-).then(loop);
+loop();
