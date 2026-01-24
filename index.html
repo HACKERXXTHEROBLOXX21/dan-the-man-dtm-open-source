@@ -1,31 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dan The Man - Menu</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Dan The Man</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div id="menu">
-    <h1>DAN THE MAN</h1>
+<canvas id="game" width="800" height="450"></canvas>
 
-    <button class="menu-btn">STORY MODE</button>
-    <button class="menu-btn">ARCADE MODE</button>
+<div id="menu">
+  <h1>DAN THE MAN</h1>
 
-    <button class="menu-btn" id="customBtn">
-      CUSTOM STAGE BUILDING!
+  <button class="menu-btn" onclick="startGame()">STORY MODE</button>
+  <button class="menu-btn" onclick="showReadyFight()">ARCADE MODE</button>
+
+  <button class="menu-btn" onclick="toggleCustom()">
+    CUSTOM STAGE BUILDING!
+  </button>
+
+  <div id="customMenu" class="hidden">
+    <button class="menu-btn sub-btn" onclick="openEditor()">
+      CREATE YOUR OWN STAGE!
     </button>
-
-    <div id="customMenu" class="hidden">
-      <button class="menu-btn sub-btn">
-        CREATE YOUR OWN STAGE!
-      </button>
-      <button class="menu-btn sub-btn">
-        PLAY CUSTOM LEVEL!
-      </button>
-    </div>
+    <button class="menu-btn sub-btn" onclick="loadCustomLevel()">
+      PLAY CUSTOM LEVEL!
+    </button>
   </div>
+
+  <!-- NEW -->
+  <button class="menu-btn" onclick="uploadMidi()">
+    UPLOAD MIDI!
+  </button>
+
+  <input type="file" id="midiInput" accept=".mid" hidden>
+</div>
+
+<script src="https://unpkg.com/soundfont-player@0.15.7/dist/soundfont-player.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
+
 
   <script src="main.js"></script>
 </body>
