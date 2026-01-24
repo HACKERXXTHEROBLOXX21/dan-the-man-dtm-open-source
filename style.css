@@ -3,42 +3,41 @@
   src: url("assets/fonts/prstartk.ttf") format("truetype");
 }
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   margin: 0;
-  height: 100vh;
-  background: #111;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: #000;
   font-family: "prstartk", monospace;
+  overflow: hidden;
+}
+
+canvas {
+  display: none;
+  background: #111;
 }
 
 #menu {
-  text-align: center;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 h1 {
   color: white;
-  font-size: 32px;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
 }
 
 .menu-btn {
-  display: block;
   width: 360px;
-  margin: 12px auto;
   padding: 14px;
-  font-size: 14px;
-  font-family: "prstartk";
-  text-transform: uppercase;
-
+  margin: 10px;
   background: #222;
   color: white;
   border: 3px solid white;
+  font-family: "prstartk";
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -49,11 +48,6 @@ h1 {
 
 .sub-btn {
   font-size: 12px;
-  background: #1a1a1a;
-}
-
-#customMenu {
-  margin-top: 10px;
 }
 
 .hidden {
