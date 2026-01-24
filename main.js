@@ -1,150 +1,185 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const BASE_W = 640;
-const BASE_H = 360;
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
-canvas.width = BASE_W;
-canvas.height = BASE_H;
-
-// ================= STATES =================
-let state = "menu";
-let cameraX = 0;
-
-// ================= FULLSCREEN =================
-window.addEventListener("keydown", e => {
-  if (e.key.toLowerCase() === "f") {
-    if (!document.fullscreenElement) {
-      document.body.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
-  }
-});
-
-// ================= INPUT =================
+const gravity = 0.6;
 const keys = {};
+
+// ---------- LOAD IMAGES ----------
+function load(src) {
+  const img = new Image();
+  img.src = src;
+  return img;
+}
+
+const dan = {
+  x: 100,
+  y: 300,
+  w: 32,
+  h: 32,
+  vx: 0,
+  vy: 0,
+  facing: 1,
+  onGround: false,
+  punching: false,
+  frame: 0,
+  tick: 0,
+  sprites: {
+    idle: load("sprites/dan_idle.png"),
+    walk: load("sprites/dan_walk.png"),
+    jump: load("sprites/dan_jump.png"),
+    punch: load("sprites/dan_punch.png")
+  }
+};
+
+// ---------- ENEMY ----------
+const enemy = {
+  x: 500,
+  y: 368,
+  w: 32,
+  h: 32,
+  hp: 3,
+  alive: true,
+  img: load("sprites/baton_guard_enemy_run.png"),
+  dead: load("sprites/baton_guard_enemy_died.png")
+};
+
+// ---------- PLATFORMS ----------
+const platforms = [
+  { x: 0, y: canvas.height - 40, w: canvas.width, h: 40 }
+];
+
+// ---------- INPUT ----------
 addEventListener("keydown", e => keys[e.key] = true);
 addEventListener("keyup", e => keys[e.key] = false);
 
-// MOBILE
-["left","right","jump","punch"].forEach(id => {
-  const el = document.getElementById(id);
-  el.addEventListener("touchstart", () => keys[id] = true);
-  el.addEventListener("touchend", () => keys[id] = false);
-});
+// Mobile buttons
+left.onclick = () => keys["ArrowLeft"] = true;
+right.onclick = () => keys["ArrowRight"] = true;
+jump.onclick = () => keys["x"] = true;
+punch.onclick = () => keys["z"] = true;
 
-// ================= SPRITES =================
-const load = s => { const i=new Image(); i.src=s; return i; };
-
-const danSprites = {
-  idle: load("assets/sprites/dan_idle.png"),
-  walk: load("assets/sprites/dan_walk.png"),
-  punch: load("assets/sprites/dan_punch.png"),
-  jump: load("assets/sprites/dan_jump.png")
-};
-
-// ================= PLAYER =================
-const player = {
-  x: 100,
-  y: 260,
-  vx: 0,
-  vy: 0,
-  grounded: true,
-  sprite: danSprites.idle
-};
-
-// ================= LEVEL =================
-const tileSize = 32;
-const level = []; // blocks placed in editor
-
-// ================= START =================
-function startGame(mode) {
-  state = mode;
-  document.getElementById("menu").style.display = "none";
+// ---------- COLLISION ----------
+function hit(a, b) {
+  return a.x < b.x + b.w &&
+         a.x + a.w > b.x &&
+         a.y < b.y + b.h &&
+         a.y + a.h > b.y;
 }
 
-// ================= UPDATE =================
+// ---------- UPDATE ----------
 function update() {
-  player.vx = 0;
+  dan.vx = 0;
 
-  const left = keys["ArrowLeft"] || keys.left;
-  const right = keys["ArrowRight"] || keys.right;
-
-  if (left) {
-    player.vx = -2;
-    player.sprite = danSprites.walk;
-  } else if (right) {
-    player.vx = 2;
-    player.sprite = danSprites.walk;
-  } else {
-    player.sprite = danSprites.idle;
+  if (keys["ArrowLeft"]) {
+    dan.vx = -4;
+    dan.facing = -1;
+  }
+  if (keys["ArrowRight"]) {
+    dan.vx = 4;
+    dan.facing = 1;
   }
 
-  if ((keys["x"] || keys.jump) && player.grounded) {
-    player.vy = -6;
-    player.grounded = false;
-    player.sprite = danSprites.jump;
+  if (keys["x"] && dan.onGround) {
+    dan.vy = -12;
+    dan.onGround = false;
   }
 
-  if (keys["z"] || keys.punch) {
-    player.sprite = danSprites.punch;
+  dan.punching = keys["z"];
+
+  dan.vy += gravity;
+  dan.x += dan.vx;
+  dan.y += dan.vy;
+
+  dan.onGround = false;
+  platforms.forEach(p => {
+    if (hit(dan, p) && dan.vy > 0) {
+      dan.y = p.y - dan.h;
+      dan.vy = 0;
+      dan.onGround = true;
+    }
+  });
+
+  // Punch hitbox
+  if (dan.punching && enemy.alive) {
+    const punchBox = {
+      x: dan.x + (dan.facing === 1 ? dan.w : -20),
+      y: dan.y + 10,
+      w: 20,
+      h: 12
+    };
+    if (hit(punchBox, enemy)) {
+      enemy.hp--;
+      if (enemy.hp <= 0) enemy.alive = false;
+    }
   }
 
-  player.x += player.vx;
-  player.y += player.vy;
-  player.vy += 0.3;
-
-  if (player.y >= 260) {
-    player.y = 260;
-    player.vy = 0;
-    player.grounded = true;
+  dan.tick++;
+  if (dan.tick > 8) {
+    dan.frame = (dan.frame + 1) % 4;
+    dan.tick = 0;
   }
-
-  cameraX = player.x - BASE_W / 2;
 }
 
-// ================= LEVEL EDITOR =================
-canvas.addEventListener("click", e => {
-  if (state !== "create") return;
-
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left) / tileSize) * tileSize + cameraX;
-  const y = Math.floor((e.clientY - rect.top) / tileSize) * tileSize;
-
-  level.push({ x, y });
-});
-
-// ================= DRAW =================
-function draw() {
-  ctx.clearRect(0, 0, BASE_W, BASE_H);
-
+// ---------- DRAW ----------
+function drawSprite(img, x, y, w, h, flip) {
   ctx.save();
-  ctx.translate(-cameraX, 0);
-
-  // blocks
-  ctx.fillStyle = "#444";
-  level.forEach(b => ctx.fillRect(b.x, b.y, tileSize, tileSize));
-
-  ctx.drawImage(player.sprite, player.x, player.y, 48, 48);
-
-  ctx.restore();
-
-  // grid (editor)
-  if (state === "create") {
-    ctx.strokeStyle = "rgba(255,255,255,0.15)";
-    for (let x=0;x<BASE_W;x+=tileSize)
-      for (let y=0;y<BASE_H;y+=tileSize)
-        ctx.strokeRect(x,y,tileSize,tileSize);
+  if (flip) {
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, -x - w, y, w, h);
+  } else {
+    ctx.drawImage(img, x, y, w, h);
   }
+  ctx.restore();
 }
 
-// ================= LOOP =================
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Platforms
+  ctx.fillStyle = "#222";
+  platforms.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
+
+  // Enemy
+  drawSprite(enemy.alive ? enemy.img : enemy.dead,
+    enemy.x, enemy.y, enemy.w, enemy.h, false);
+
+  // Player sprite state
+  let sprite = dan.sprites.idle;
+  if (!dan.onGround) sprite = dan.sprites.jump;
+  else if (dan.punching) sprite = dan.sprites.punch;
+  else if (dan.vx !== 0) sprite = dan.sprites.walk;
+
+  drawSprite(sprite, dan.x, dan.y, dan.w, dan.h, dan.facing === -1);
+}
+
+// ---------- MIDI + SOUNDFONT ----------
+let audioCtx = new AudioContext();
+let player;
+
+sfUpload.onchange = async e => {
+  const sf = e.target.files[0];
+  player = await Soundfont.instrument(audioCtx, sf);
+};
+
+midiUpload.onchange = e => {
+  if (!player) return alert("Upload SoundFont first!");
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = () => player.play(60);
+  reader.readAsArrayBuffer(file);
+};
+
+// ---------- LOOP ----------
 function loop() {
-  if (state !== "menu") {
-    update();
-    draw();
-  }
+  update();
+  draw();
   requestAnimationFrame(loop);
 }
 loop();
