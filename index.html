@@ -2,23 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dan The Man – Open Source</title>
+  <title>Dan The Man – Web Demo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<h1>DAN THE MAN</h1>
+  <h1 class="title">Dan The Man – Web Demo</h1>
 
-<canvas id="game" width="320" height="180"></canvas>
+  <canvas id="game" width="640" height="360"></canvas>
 
-<div class="controls">
-  <input type="file" id="midiUpload" accept=".mid,.midi">
-  <button id="playMidi">PLAY MIDI</button>
-</div>
+  <div class="controls">
+    ⬅️ ➡️ Move | Z = Punch | X = Jump
+  </div>
 
-<!-- SoundFont Player -->
-<script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/dist/soundfont-player.min.js"></script>
+  <!-- MIDI.js for MIDI + SF2 -->
+  <script src="https://cdn.jsdelivr.net/npm/midi.js@0.3.1/build/MIDI.min.js"></script>
 
-<script src="main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
