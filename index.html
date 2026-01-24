@@ -2,22 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dan The Man – Web Demo</title>
+  <title>Dan The Man - Web Demo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h1 class="title">Dan The Man – Web Demo</h1>
+<div id="menu">
+  <h1>DAN THE MAN!</h1>
 
-  <canvas id="game" width="640" height="360"></canvas>
-
-  <div class="controls">
-    ⬅️ ➡️ Move | Z = Punch | X = Jump
+  <button id="playBtn">PLAY!</button>
+  <div class="submenu" id="playMenu">
+    <button data-mode="story">STORY MODE!</button>
+    <button data-mode="any">ANY MODE!</button>
   </div>
 
-  <!-- MIDI.js for MIDI + SF2 -->
-  <script src="https://cdn.jsdelivr.net/npm/midi.js@0.3.1/build/MIDI.min.js"></script>
+  <button id="customBtn">CUSTOM BUILDING LEVEL!</button>
+  <div class="submenu" id="customMenu">
+    <button data-mode="create">CREATE LEVEL!</button>
+    <button data-mode="customPlay">PLAY LEVEL!</button>
+  </div>
+</div>
 
-  <script src="main.js"></script>
+<canvas id="game" width="640" height="360"></canvas>
+
+<div id="hint">
+  ⬅ ➡ Move &nbsp; | &nbsp; Z = Punch &nbsp; | &nbsp; X = Jump
+</div>
+
+<script src="main.js"></script>
 </body>
 </html>
