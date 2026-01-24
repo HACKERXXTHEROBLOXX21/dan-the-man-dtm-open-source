@@ -1,0 +1,61 @@
+@font-face {
+  font-family: "prstartk";
+  src: url("assets/fonts/prstartk.ttf") format("truetype");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  background: #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "prstartk", monospace;
+}
+
+#menu {
+  text-align: center;
+}
+
+h1 {
+  color: white;
+  font-size: 32px;
+  margin-bottom: 30px;
+}
+
+.menu-btn {
+  display: block;
+  width: 360px;
+  margin: 12px auto;
+  padding: 14px;
+  font-size: 14px;
+  font-family: "prstartk";
+  text-transform: uppercase;
+
+  background: #222;
+  color: white;
+  border: 3px solid white;
+  cursor: pointer;
+}
+
+.menu-btn:hover {
+  background: white;
+  color: black;
+}
+
+.sub-btn {
+  font-size: 12px;
+  background: #1a1a1a;
+}
+
+#customMenu {
+  margin-top: 10px;
+}
+
+.hidden {
+  display: none;
+}
