@@ -1,16 +1,33 @@
+@font-face {
+  font-family: prstart;
+  src: url("assets/fonts/prstartk.ttf");
+}
+
 html, body {
   margin: 0;
   padding: 0;
   background: black;
   overflow: hidden;
-  touch-action: none;
+  font-family: prstart;
 }
 
-canvas {
-  display: block;
-  width: 100vw;
-  height: 100vh;
-  image-rendering: pixelated;
+#game {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+#audio-ui {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+}
+
+#audio-ui input,
+#audio-ui button {
+  font-family: prstart;
+  margin-right: 6px;
 }
 
 #controls {
@@ -25,15 +42,9 @@ canvas {
 #controls button {
   width: 60px;
   height: 60px;
-  font-size: 20px;
-  background: #111;
+  font-family: prstart;
+  font-size: 18px;
+  background: black;
   color: white;
   border: 2px solid white;
-}
-
-#midi {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  color: white;
 }
