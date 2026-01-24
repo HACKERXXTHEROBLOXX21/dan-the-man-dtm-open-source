@@ -1,127 +1,126 @@
-// ---------- CANVAS ----------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// ---------- MENU ----------
-const menu = document.getElementById("menu");
-const customMenu = document.getElementById("customMenu");
-const midiInput = document.getElementById("midiInput");
+canvas.width = 320;
+canvas.height = 180;
+ctx.imageSmoothingEnabled = false;
 
-// preload font
-document.fonts.load("16px prstartk");
+// SPRITES
+const sprites = {
+  idle:  { img: new Image(), frames: 4 },
+  walk:  { img: new Image(), frames: 6 },
+  punch: { img: new Image(), frames: 3 },
+  jump:  { img: new Image(), frames: 1 }
+};
 
-// ---------- AUDIO ----------
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let instrument = null;
+sprites.idle.img.src  = "assets/sprites/dan_idle.png";
+sprites.walk.img.src  = "assets/sprites/dan_walk.png";
+sprites.punch.img.src = "assets/sprites/dan_punch.png";
+sprites.jump.img.src  = "assets/sprites/dan_jump.png";
 
-// SNES-style GM soundfont (logical name only)
-// NOTE: Browsers can't directly load .sf2 yet
-Soundfont.instrument(audioCtx, "acoustic_grand_piano").then(inst => {
-  instrument = inst;
-});
+const FRAME_W = 32;
+const FRAME_H = 32;
 
-// ---------- MENU FUNCTIONS ----------
-function toggleCustom() {
-  customMenu.classList.toggle("hidden");
-}
+// PLAYER
+let x = 140;
+let y = 100;
+let vx = 0;
+let vy = 0;
 
-function startGame() {
-  showReadyFight();
-}
+const speed = 1.5;
+const gravity = 0.35;
+const jumpPower = -6;
+const groundY = 120;
 
-// ---------- READY / FIGHT ----------
-function showReadyFight() {
-  menu.style.display = "none";
-  canvas.style.display = "block";
+let onGround = true;
+let state = "idle";
+let frame = 0;
+let frameTimer = 0;
 
-  let frame = 0;
+// INPUT
+const keys = {};
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
 
-  function loop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "white";
-    ctx.textAlign = "center";
-    ctx.font = "48px prstartk";
+// UPDATE
+function update() {
+  vx = 0;
 
-    if (frame < 60) {
-      ctx.fillText("READY?", canvas.width / 2, canvas.height / 2);
-    } else if (frame < 120) {
-      ctx.fillText("FIGHT!", canvas.width / 2, canvas.height / 2);
-    } else {
-      startBattle();
-      return;
-    }
-
-    frame++;
-    requestAnimationFrame(loop);
+  // Jump
+  if ((keys["ArrowUp"] || keys[" "]) && onGround) {
+    vy = jumpPower;
+    onGround = false;
   }
 
-  loop();
+  // Punch overrides everything
+  if (keys["z"] || keys["Z"]) {
+    if (state !== "punch") {
+      state = "punch";
+      frame = 0;
+    }
+  }
+  else if (!onGround) {
+    state = "jump";
+  }
+  else if (keys["ArrowLeft"] || keys["ArrowRight"]) {
+    state = "walk";
+    if (keys["ArrowLeft"]) vx = -speed;
+    if (keys["ArrowRight"]) vx = speed;
+  }
+  else {
+    state = "idle";
+  }
+
+  // Physics
+  x += vx;
+  vy += gravity;
+  y += vy;
+
+  // Ground collision
+  if (y >= groundY) {
+    y = groundY;
+    vy = 0;
+    onGround = true;
+  }
+
+  // Animation
+  frameTimer++;
+  if (frameTimer > 8) {
+    frame++;
+    frameTimer = 0;
+
+    if (frame >= sprites[state].frames) {
+      frame = 0;
+      if (state === "punch") state = "idle";
+    }
+  }
 }
 
-// ---------- GAME LOOP ----------
-let player = { x: 120, y: 320 };
-
-function startBattle() {
-  gameLoop();
-}
-
-function gameLoop() {
+// DRAW
+function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // ground
-  ctx.fillStyle = "#444";
-  ctx.fillRect(0, 360, 800, 90);
+  const sprite = sprites[state];
 
-  // player
-  ctx.fillStyle = "red";
-  ctx.fillRect(player.x, player.y, 32, 32);
-
-  requestAnimationFrame(gameLoop);
+  ctx.drawImage(
+    sprite.img,
+    frame * FRAME_W, 0,
+    FRAME_W, FRAME_H,
+    Math.floor(x), Math.floor(y),
+    FRAME_W, FRAME_H
+  );
 }
 
-// ---------- STAGE EDITOR ----------
-function openEditor() {
-  menu.style.display = "none";
-  canvas.style.display = "block";
-
-  canvas.onclick = e => {
-    const x = Math.floor(e.offsetX / 40) * 40;
-    const y = Math.floor(e.offsetY / 40) * 40;
-    ctx.fillStyle = "#666";
-    ctx.fillRect(x, y, 40, 40);
-  };
+// LOOP
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
 }
 
-// ---------- CUSTOM LEVEL ----------
-function loadCustomLevel() {
-  menu.style.display = "none";
-  canvas.style.display = "block";
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "white";
-  ctx.font = "24px prstartk";
-  ctx.textAlign = "center";
-  ctx.fillText("CUSTOM LEVEL LOADED", canvas.width / 2, 100);
-}
-
-// ---------- MIDI UPLOAD ----------
-function uploadMidi() {
-  midiInput.click();
-}
-
-midiInput.addEventListener("change", () => {
-  const file = midiInput.files[0];
-  if (!file || !instrument) return;
-
-  // Demo SNES-style playback (placeholder)
-  const notes = ["C4", "E4", "G4", "C5"];
-  notes.forEach((note, i) => {
-    instrument.play(note, audioCtx.currentTime + i * 0.3, {
-      duration: 0.25,
-      gain: 0.8
-    });
-  });
-
-  alert("MIDI LOADED!\n(SNES GM SoundFont Ready)");
-});
-
+// START
+Promise.all(
+  Object.values(sprites).map(s =>
+    new Promise(res => s.img.onload = res)
+  )
+).then(loop);
