@@ -2,34 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dan The Man – Web</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dan The Man (Open Source)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="menu">
-  <h1>DAN THE MAN!</h1>
-
-  <button onclick="startGame('story')">PLAY!</button>
-  <button onclick="startGame('create')">CUSTOM BUILDING LEVEL!</button>
-
-  <label class="upload">
-    UPLOAD MIDI!
-    <input type="file" accept=".mid,.midi">
-  </label>
-</div>
-
 <canvas id="game"></canvas>
 
 <!-- MOBILE CONTROLS -->
-<div id="mobile">
+<div id="controls">
   <button id="left">◀</button>
   <button id="right">▶</button>
   <button id="punch">Z</button>
   <button id="jump">X</button>
 </div>
 
+<!-- MIDI PLAYER -->
+<div id="midi">
+  <input type="file" id="midiUpload" accept=".mid,.midi">
+  <input type="file" id="sfUpload" accept=".sf2">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/dist/soundfont-player.min.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
