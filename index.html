@@ -1,35 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Dan The Man – Web Demo</title>
-
-<link rel="stylesheet" href="style.css">
-
-<!-- MIDI + SoundFont libs -->
-<script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/dist/soundfont-player.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/midi-player-js@2.0.5/dist/MidiPlayer.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>Dan The Man (Open Source)</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <!-- AUDIO UI -->
-  <div id="audio-ui">
-    <input type="file" id="midiInput" accept=".mid">
-    <input type="file" id="sf2Input" accept=".sf2">
+
+  <!-- MIDI UI -->
+  <div id="midi-ui">
+    <input type="file" id="midiFile" accept=".mid,.midi">
     <button id="playMidi">▶ PLAY MIDI</button>
   </div>
 
   <!-- GAME -->
   <canvas id="game"></canvas>
 
-  <!-- MOBILE CONTROLS -->
-  <div id="controls">
-    <button id="left">◀</button>
-    <button id="right">▶</button>
-    <button id="punch">Z</button>
-    <button id="jump">X</button>
-  </div>
-
-<script src="main.js"></script>
+  <!-- LIBS -->
+  <script src="https://unpkg.com/soundfont-player@0.15.7/dist/soundfont-player.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
