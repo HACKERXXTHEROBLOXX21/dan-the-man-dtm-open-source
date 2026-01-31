@@ -1,50 +1,38 @@
 @font-face {
-  font-family: prstart;
-  src: url("assets/fonts/prstartk.ttf");
+  font-family: "PressStart";
+  src: url("assets/fonts/prstart.ttf");
 }
 
-html, body {
+* {
   margin: 0;
   padding: 0;
-  background: black;
+  box-sizing: border-box;
+}
+
+body {
   overflow: hidden;
-  font-family: prstart;
+  background: #000;
+  font-family: PressStart, monospace;
 }
 
 #game {
-  position: fixed;
-  top: 0;
-  left: 0;
+  display: block;
+  background: #7bdc65;
 }
 
-#audio-ui {
+/* MIDI UI */
+#midi-ui {
   position: fixed;
   top: 10px;
   left: 10px;
   z-index: 10;
+  background: rgba(0,0,0,0.6);
+  padding: 8px;
+  border: 2px solid #fff;
 }
 
-#audio-ui input,
-#audio-ui button {
-  font-family: prstart;
-  margin-right: 6px;
-}
-
-#controls {
-  position: fixed;
-  bottom: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-#controls button {
-  width: 60px;
-  height: 60px;
-  font-family: prstart;
-  font-size: 18px;
-  background: black;
-  color: white;
-  border: 2px solid white;
+#midi-ui button {
+  font-family: PressStart;
+  margin-left: 6px;
+  cursor: pointer;
 }
